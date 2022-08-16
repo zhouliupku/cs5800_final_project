@@ -77,7 +77,7 @@ def show(path):
         y = []
         x.append(spots[path[item - 1], 0])
         y.append(spots[path[item - 1], 1])
-        x.append(spots[path[item], 0]) #两点中心
+        x.append(spots[path[item], 0])
         y.append(spots[path[item], 1])
         plt.plot(x, y, "-", color = 'k')
     plt.show()
