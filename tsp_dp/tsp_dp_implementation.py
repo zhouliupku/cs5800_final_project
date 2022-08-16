@@ -1,20 +1,27 @@
 # -*- coding: utf-8 -*-
 """
-Author: Zhou
 Implementing TSP by DP method
+Time complexity: O(2^n * n^2)
+Space complexity: O(2^n)
+Author: Zhou Liu
 """
 
-NUM_CITY = 5
+import time
+from tsp_dp import data_preprocess
+
+# Parameter settings as Global variables
+graph = data_preprocess.build_graph("data_small.txt")
+NUM_CITY = len(graph)
 BIN_NUM_CITY = 1 << (NUM_CITY - 1)
 
 # dp[i][V]: i to s crossing all vs in V only one time
 dp = [[0 for _ in range(BIN_NUM_CITY)] for _ in range(NUM_CITY)]
 path = []
-graph = [[0, 3, float('inf'), 8, 9],
-         [3, 0, 3, 10, 5],
-         [float('inf'), 3, 0, 4, 3],
-         [8, 10, 4, 0, 20],
-         [9, 5, 3, 20, 0]]
+# graph = [[0, 3, float('inf'), 8, 9],
+#          [3, 0, 3, 10, 5],
+#          [float('inf'), 3, 0, 4, 3],
+#          [8, 10, 4, 0, 20],
+#          [9, 5, 3, 20, 0]]
 
 
 def tsp():
@@ -83,7 +90,9 @@ def print_path():
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     tsp()
     print("Minimum value: ", dp[0][BIN_NUM_CITY - 1])
     get_path()
     print_path()
+    print("run time: % s seconds" % (time.time() - start_time))
