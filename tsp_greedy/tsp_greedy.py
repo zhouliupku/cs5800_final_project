@@ -3,8 +3,6 @@ Travelling Sales Man Problem With Visualization
 Solve by Greedy Algorithm
 Time complexity (Without visualization): O(n^2)
 Space complexity (Without visualization): O(n^2)
-Reference of Visualization:
-https://github.com/Joel-Q-Xu/AI-genetic-algorithms-TSP/blob/master/myTSP.py
 Author: Jifan Xie
 Date: Augest 16, 2022
 """
