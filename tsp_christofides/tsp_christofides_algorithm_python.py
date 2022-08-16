@@ -7,14 +7,19 @@ salesman problem[R]. Carnegie-Mellon Univ Pittsburgh Pa Management Sciences
 Research Group, 1976.
 Time Complexity: O(n^3)
 
+Minimum Spanning Tree is generated using Prim's Algorithm with binary heap
+implementation. Using python embeded library heapq.
+
 Author: Jing Ming
-Date: Augest 14, 2022
+Date: Augest 16, 2022
 """
+
 import math
 import networkx as nx
+import heapq
+import time
 
 from networkx.algorithms.matching import max_weight_matching
-from FibonacciHeap import FibonacciHeap
 
 class Graph:
     """
@@ -112,11 +117,9 @@ def generate_minimum_weight_perfect_mathcing(graph, odd_vertices):
             u = odd_vertices[i]
             v = odd_vertices[j]
             edges.append([u, v, graph.graph[u][v] * -1])
-    print(f"{edges}")
     G.add_weighted_edges_from(edges)
 
     matching = nx.max_weight_matching(G, maxcardinality=True)
-    print(f"{matching}")
     mwpm = []
 
     for edge in matching:
@@ -149,32 +152,27 @@ def generate_minimum_spanning_tree_with_prim(graph, source):
 
     key[source] = 0
 
-    node_list = []
-
-    fibonacci_heap = FibonacciHeap()
+    heap = []
     for dest in range(graph.num_nodes):
         if dest == source:
             continue
         else:
             key[dest] = graph.graph[source][dest]
             # store the node in fibonacci_heap, used later for decrease key
-            node_list.append(fibonacci_heap.insert(key[dest], dest))
+            heap.append((key[dest], dest))
             parent[dest] = source
+    heapq.heapify(heap)
 
-    while node_list and len(visited) != graph.num_nodes:
-            node = fibonacci_heap.extract_min()
-            distance = node.key
-            dest = node.value
-            node_list.remove(node)
+    while heap and len(visited) != graph.num_nodes:
+            distance, dest = heapq.heappop(heap)
             if dest not in visited:
                 visited.add(dest)
                 mst_prim.append([parent[dest], dest, distance])
-                for node in node_list:
-                    neighbor = node.value
+                for neighbor in range(graph.num_nodes):
                     if neighbor not in visited and graph.graph[dest][neighbor] < key[neighbor]:
                         parent[neighbor] = dest
                         key[neighbor] = graph.graph[dest][neighbor]
-                        fibonacci_heap.decrease_key(node, key[neighbor])
+                        heapq.heappush(heap, (key[neighbor], neighbor))
 
     return mst_prim
 
@@ -202,6 +200,7 @@ def create_graph(input_file):
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     # Create a graph
     graph = create_graph("data.txt")
 
@@ -229,6 +228,8 @@ if __name__ == "__main__":
     # Generate Hamiltonian circuit
     hamiltonian_circuit, cost = generate_hamiltonian_circuit(eulerian_circuit, graph)
     print(f"hamiltonian_circuit: {hamiltonian_circuit}\ntotal cost: {cost}")
+
+    print("%s sconds run time for heapq" % (time.time() - start_time))
 
 
 
