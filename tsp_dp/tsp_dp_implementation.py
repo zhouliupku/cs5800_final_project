@@ -2,7 +2,7 @@
 """
 Implementing TSP by DP method
 Time complexity: O(2^n * n^2)
-Space complexity: O(2^n)
+Space complexity: O(2^n * n)
 Author: Zhou Liu
 """
 
