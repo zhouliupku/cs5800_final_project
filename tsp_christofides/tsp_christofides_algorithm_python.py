@@ -10,16 +10,19 @@ Time Complexity: O(n^3)
 Minimum Spanning Tree is generated using Prim's Algorithm with binary heap
 implementation. Using python embeded library heapq.
 
+Minimum Weight Perfect Matching is generated using .max_weight_matching function
+in NetworkX python library.
+
 Author: Jing Ming
 Date: Augest 16, 2022
 """
-
 import math
 import networkx as nx
 import heapq
 import time
 
 from networkx.algorithms.matching import max_weight_matching
+from collections import defaultdict, deque
 
 class Graph:
     """
@@ -29,6 +32,7 @@ class Graph:
         self.graph = []
         self.num_nodes = 0
 
+    # Build graph from location (x, y).
     def build_graph(self, location):
         self.num_nodes = len(location)
         for i in range(self.num_nodes):
@@ -40,11 +44,13 @@ class Graph:
                     weight = self.euclidean_distance(location[i], location[j])
                     self.graph[i].append(weight)
 
+    # Calculate euclidean distance between the two points.
     def euclidean_distance(self, p1, p2):
         return ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** (1.0 / 2.0)
 
     def print_graph(self):
         print(f"Graph represented by matrix: {self.graph}")
+
 
 def generate_hamiltonian_circuit(eulerian_circuit, graph):
     start = eulerian_circuit[0]
@@ -74,17 +80,14 @@ def remove_edge_from_multigraph(multigraph, v, w):
 
 
 def generate_eulerian_circuit(multigraph, graph):
-    # Find neighbors
-    neighbors = {}
+    # Mapping every vertex in multigraph to its neighbors.
+    neighbors = defaultdict(list)
     for edge in multigraph:
-        if edge[0] not in neighbors:
-            neighbors[edge[0]] = []
         neighbors[edge[0]].append(edge[1])
-        if edge[1] not in neighbors:
-            neighbors[edge[1]] = []
         neighbors[edge[1]].append(edge[0])
 
-    # Generate eulerian circuit
+    # Generate eulerian circuit.
+    # Start from the neighbors of first vertex of multigraph's first edge.
     start = multigraph[0][0]
     eulerian_circuit = [neighbors[start][0]]
 
@@ -108,19 +111,36 @@ def generate_eulerian_circuit(multigraph, graph):
 
     return eulerian_circuit
 
+
 def generate_minimum_weight_perfect_mathcing(graph, odd_vertices):
-    n = len(odd_vertices)
-    G = nx.Graph()
+    """
+    Minimum Weight Perfect Matching using NetworkX library.
+    https://networkx.org/documentation/stable/reference/algorithms/generated/networkx.algorithms.matching.max_weight_matching.html
+    Args:
+        graph:  adjacency matrix represented Graph
+        odd_vertices: the vertices of odd degree in the MST
+    Returns:
+        a list of edges (u, v, weight(u, v)) which represents a minimum weight
+        perfect matching of complete graph.
+    """
+
+    mwpm = []
     edges = []
+    n = len(odd_vertices)
+    G = nx.Graph() # a NetworkX graph
+    # Gathering the edges between every odd_vertices pair in the graph. Invert
+    # edge weights to use max_weight_matching later.
     for i in range(n):
         for j in range(i + 1, n):
             u = odd_vertices[i]
             v = odd_vertices[j]
             edges.append([u, v, graph.graph[u][v] * -1])
+    # Add edges to NetworkX graph.
     G.add_weighted_edges_from(edges)
 
+    # Set `maxcardinality` to true in order to find perfect matching on even
+    # vertices complete graph. `matching` is a set of (u, v)
     matching = nx.max_weight_matching(G, maxcardinality=True)
-    mwpm = []
 
     for edge in matching:
         u = edge[0]
@@ -129,6 +149,8 @@ def generate_minimum_weight_perfect_mathcing(graph, odd_vertices):
 
     return mwpm
 
+
+# Find the vertices of odd degree in the minimum spanning tree
 def find_odd_vertices(mst):
     vertex_degree = {}
     odd_vertices = []
@@ -143,11 +165,25 @@ def find_odd_vertices(mst):
 
     return odd_vertices
 
+
 def generate_minimum_spanning_tree_with_prim(graph, source):
+    """
+    Minimum Spanning Tree using Prim's Algorithm
+    CLRS[23.2]
+    Args:
+        graph:  adjacency matrix represented Graph
+        source: the root vertex used to generate Prim tree
+    Returns:
+        a list of edges (u, v, weight(u, v)) which represents a minimum
+        spanning tree.
+    """
+
     mst_prim = []
     visited = set()
     visited.add(source)
+    # `parent` array stores the parent of each vertex in the MST
     parent = [None] * graph.num_nodes
+    # `key` array stores the minimum weight of any edge connecting v to a vertex in the tree
     key = [math.inf] * graph.num_nodes
 
     key[source] = 0
@@ -157,10 +193,10 @@ def generate_minimum_spanning_tree_with_prim(graph, source):
         if dest == source:
             continue
         else:
-            key[dest] = graph.graph[source][dest]
-            # store the node in fibonacci_heap, used later for decrease key
-            heap.append((key[dest], dest))
             parent[dest] = source
+            key[dest] = graph.graph[source][dest]
+            heap.append((key[dest], dest))
+    # Heapify the heap to get a binary min-heap
     heapq.heapify(heap)
 
     while heap and len(visited) != graph.num_nodes:
@@ -177,10 +213,11 @@ def generate_minimum_spanning_tree_with_prim(graph, source):
     return mst_prim
 
 
+# Read lines from the input_file. Generate name list and location list.
 def read_input(input_file):
     city_name = []
     city_location = []
-    # `data.txt` in format: [city_name],[city_location_x],[city_location_y]
+    # input file in format: [city_name],[city_location_x],[city_location_y]
     with open(input_file, "r") as f:
         lines = f.readlines()
         for line in lines:
@@ -191,6 +228,7 @@ def read_input(input_file):
     return city_name, city_location
 
 
+# Create undirected weighted graph from the input file.
 def create_graph(input_file):
     city_name, city_location = read_input(input_file)
     graph = Graph()
@@ -199,35 +237,50 @@ def create_graph(input_file):
     return graph
 
 
-if __name__ == "__main__":
-    start_time = time.time()
-    # Create a graph
-    graph = create_graph("data.txt")
+def tsp_christofides(graph):
+    """
+    An approximation algorithm to solve the metric travelling sales man problem.
+    Args:
+        graph: adjacency matrix represented Graph.
+    Returns:
+        a list of city name which is the tour generated by christofides
+        algorithm and its cost.
+    """
 
-    # Find its minimum spanning tree
+    # Find its minimum spanning tree.
     mst_prim = generate_minimum_spanning_tree_with_prim(graph, 0)
     print(f"mst prim: {mst_prim}")
 
-    # Find odd_vertices
+    # Find odd_vertices.
     odd_vertices = find_odd_vertices(mst_prim)
     print(f"odd vertices: {odd_vertices}")
 
-    # Find minimum weight perfect mathcing
+    # Find minimum weight perfect mathcing.
     mwpm = generate_minimum_weight_perfect_mathcing(graph, odd_vertices)
     print(f"mwpm: {mwpm}")
 
-    # Combine mst and mwpm result
+    # Combine mst and mwpm result to creat a multigraph.
     mst_prim.extend(mwpm)
     multigraph = mst_prim
     print(f"multigraph: {multigraph}")
 
-    # Create Eulerian circuit
+    # Create Eulerian circuit.
     eulerian_circuit = generate_eulerian_circuit(multigraph, graph)
     print(f"eulerian_circuit: {eulerian_circuit}")
 
-    # Generate Hamiltonian circuit
+    # Generate Hamiltonian circuit.
     hamiltonian_circuit, cost = generate_hamiltonian_circuit(eulerian_circuit, graph)
     print(f"hamiltonian_circuit: {hamiltonian_circuit}\ntotal cost: {cost}")
+
+    return hamiltonian_circuit, cost
+
+
+if __name__ == "__main__":
+    start_time = time.time()
+
+    graph = create_graph("data_small.txt")
+
+    tour, cost = tsp_christofides(graph)
 
     print("%s sconds run time for heapq" % (time.time() - start_time))
 
