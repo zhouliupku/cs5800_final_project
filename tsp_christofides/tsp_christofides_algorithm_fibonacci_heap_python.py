@@ -18,6 +18,7 @@ Date: Augest 14, 2022
 
 import math
 import networkx as nx
+import time
 
 from networkx.algorithms.matching import max_weight_matching
 from fibHeap import FibonacciHeap
@@ -208,6 +209,7 @@ def create_graph(input_file):
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     # Create a graph
     graph = create_graph("data.txt")
 
@@ -235,6 +237,8 @@ if __name__ == "__main__":
     # Generate Hamiltonian circuit
     hamiltonian_circuit, cost = generate_hamiltonian_circuit(eulerian_circuit, graph)
     print(f"hamiltonian_circuit: {hamiltonian_circuit}\ntotal cost: {cost}")
+
+    print("%s sconds run time for fibonacci heap" % (time.time() - start_time))
 
 
 
