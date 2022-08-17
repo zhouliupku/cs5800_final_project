@@ -13,6 +13,10 @@ implementation. Using python embeded library heapq.
 Minimum Weight Perfect Matching is generated using .max_weight_matching function
 in NetworkX python library.
 
+To use this program, please install networkx and matplotlib library use
+pip install networkx
+pip install matplotlib
+
 Author: Jing Ming
 Date: Augest 16, 2022
 """
@@ -20,6 +24,7 @@ import math
 import networkx as nx
 import heapq
 import time
+import matplotlib.pyplot as plt
 
 from networkx.algorithms.matching import max_weight_matching
 from collections import defaultdict, deque
@@ -234,7 +239,7 @@ def create_graph(input_file):
     graph = Graph()
     graph.build_graph(city_location)
 
-    return graph
+    return city_name, city_location, graph
 
 
 def tsp_christofides(graph):
@@ -275,14 +280,39 @@ def tsp_christofides(graph):
     return hamiltonian_circuit, cost
 
 
+# Visualization, copy from Jifan's tsp_greedy.py
+def show(path, city_name, city_location):
+    N = len(city_name)
+    # Show spots
+    for item in range(N):
+        if item == path[0]:
+            plt.plot(city_location[item][0], city_location[item][1], "o", color = 'r')
+        else:
+            plt.plot(city_location[item][0], city_location[item][1], "o", color = 'b')
+        plt.text(city_location[item][0] + 0.1, city_location[item][1] + 0.1, item)
+    # Show path
+    for item in range(1, len(path)):
+        x = []
+        y = []
+        x.append(city_location[path[item - 1]][0])
+        y.append(city_location[path[item - 1]][1])
+        x.append(city_location[path[item]][0])
+        y.append(city_location[path[item]][1])
+        plt.plot(x, y, "-", color = 'k')
+
+    plt.show()
+
+
 if __name__ == "__main__":
     start_time = time.time()
 
-    graph = create_graph("data_small.txt")
+    city_name, city_location, graph = create_graph("data_small.txt")
 
     tour, cost = tsp_christofides(graph)
 
     print("%s sconds run time for heapq" % (time.time() - start_time))
+
+    show(tour, city_name, city_location)
 
 
 
