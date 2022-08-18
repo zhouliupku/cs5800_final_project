@@ -7,6 +7,7 @@ Author: Zhou Liu
 """
 
 import time
+from matplotlib import pyplot as plt
 from tsp_dp import data_preprocess
 
 # Parameter settings as Global variables
@@ -17,6 +18,8 @@ BIN_NUM_CITY = 1 << (NUM_CITY - 1)
 # dp[i][V]: i to s crossing all vs in V only one time
 dp = [[0 for _ in range(BIN_NUM_CITY)] for _ in range(NUM_CITY)]
 path = []
+
+
 # graph = [[0, 3, float('inf'), 8, 9],
 #          [3, 0, 3, 10, 5],
 #          [float('inf'), 3, 0, 4, 3],
@@ -85,8 +88,28 @@ def get_path():
 def print_path():
     print("Minimum path: ")
     for element in path:
-        print(element, end = " ---> ")
+        print(element, end=" ---> ")
     print("0")
+
+
+def visualization():
+    # get the x, y locations
+    locations = data_preprocess.read_in_input("data_small.txt")
+    path.append(0)
+    city_names = list(locations.keys())
+    city_to_index = {city_name: i for i, city_name in enumerate(city_names)}
+    coords = [locations[city_name] for city_name in city_names]
+    xs = [c[0] for c in coords]
+    ys = [c[1] for c in coords]
+    plt.scatter(xs, ys)
+    for i, city_name in enumerate(city_names):
+        plt.annotate(city_name, (xs[i], ys[i]))
+    for i in range(len(path) - 1):
+        start, end = path[i], path[i + 1]
+        plt.plot([xs[city_to_index[start]], xs[city_to_index[end]]],
+                 [ys[city_to_index[start]], ys[city_to_index[end]]])
+    plt.show()
+    plt.close()
 
 
 if __name__ == "__main__":
@@ -96,3 +119,4 @@ if __name__ == "__main__":
     get_path()
     print_path()
     print("run time: % s seconds" % (time.time() - start_time))
+    visualization()
